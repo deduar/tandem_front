@@ -1,42 +1,65 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
+  <div>
     <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
+      <div class="card_menu">
+        <li><button><a href=".">Get Twitts</a></button></li>
+        <li><button><a href="/stored">Twits Stored</a></button></li>
+        <li><button><a href="/delete">Delete All Twits</a></button></li>
+        <li><button><a href="/graphs">Show Graphs</a></button></li>    
+      </div>
     </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
+    <ul v-if="posts && posts.length">
+      <li v-for="post of posts" v-bind:key="post.id">
+        <div class="card" style="margin: 20px; background: #f5f5f5">
+          <div class="container" style="padding: 10px">
+            {{ post.id }}
+            <div class="card_head">
+              <img v-bind:src="post.user.profile_image_url" />
+              <h4>{{ post.user.name }}</h4>
+            </div>
+            <strong>{{ post.text }}</strong>
+            <p style="display: flex; justify-content: space-between;">
+              Índice 1:{{ post.entities.hashtags[0].indices[0] }} " | " 
+              Índice 2:{{ post.entities.hashtags[0].indices[1] }}
+              <button><a v-bind:href="'/save/'+ post.id">Save</a></button>
+            </p>
+            
+          </div>
+        </div>
+      </li>
     </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
+
+    <ul v-if="errors && errors.length">
+      <li v-for="error of errors" v-bind:key="error.id">
+        {{ error.message }}
+      </li>
     </ul>
   </div>
 </template>
 
 <script>
+import axios from "axios";
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
+  data() {
+    return {
+      posts: [],
+      errors: [],
+    };
+  },
+
+  // Fetches posts when the component is created.
+  async created() {
+    await axios
+      .get(`http://localhost:8000/api/tw`)
+      .then((response) => {
+        // JSON responses are automatically parsed.
+        this.posts = response.data.data.statuses;
+      })
+      .catch((e) => {
+        this.errors.push(e);
+      });
+  },
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -49,10 +72,43 @@ ul {
   padding: 0;
 }
 li {
-  display: inline-block;
+  /* display: inline-block; */
   margin: 0 10px;
 }
 a {
   color: #42b983;
+}
+
+.card {
+  /* Add shadows to create the "card" effect */
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  width: 90%;
+}
+
+/* On mouse-over, add a deeper shadow */
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Add some padding inside the card container */
+.container {
+  padding: 2px 16px;
+}
+
+.card_head {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 8px;
+}
+
+.card_menu {
+  display: flex;
+  /* align-items: center; */
+  justify-content: center;
+}
+
+a {
+  text-decoration: none
 }
 </style>
